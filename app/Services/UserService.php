@@ -6,6 +6,7 @@ use App\Exceptions\UniqueDataException;
 use App\Exceptions\ValidationDataException;
 use App\Models\User;
 use App\Repositories\UserRepository;
+use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -83,10 +84,15 @@ class UserService {
 
     public function generateToken(): string
     {
-        $token = \session()->token();
+        $payload = [
+            'iss' => 'test-assignment',
+            'sub' => 'registration',
+            'iat' => now()->timestamp,
+            'exp' => now()->addMinutes(40)->timestamp,
+        ];
 
-        Cache::put('registration_token_' . $token, true, now()->addMinutes(40));
+        $jwt = JWT::encode($payload, env('JWT_SECRET'), 'HS256');
 
-        return $token;
+        return $jwt;
     }
 }

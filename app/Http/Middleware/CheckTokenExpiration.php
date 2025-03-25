@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Carbon\Carbon;
 use Closure;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
@@ -18,15 +20,21 @@ class CheckTokenExpiration
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->header('token');
+        try {
+            $token = $request->header('token');
+            $token ?? throw new \Exception();
 
-        if (!Cache::has('registration_token_' . $token)) {
+            $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
 
-           return response()->json([
-               'success' => false,
-               'message' => 'The token expired.',
-           ], 401);
-       }
+            if ($decoded->exp < Carbon::now()->timestamp) throw new \Exception();
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The token expired.',
+            ], 401);
+        }
+
          return $next($request);
     }
 }
