@@ -84,8 +84,6 @@ class UserService {
 
     public function generateToken(): string
     {
-        $key = 'secret';
-
         $payload = [
             'iss' => 'test-assignment',
             'sub' => 'registration',
@@ -93,7 +91,7 @@ class UserService {
             'exp' => now()->addMinutes(40)->timestamp,
         ];
 
-        $jwt = JWT::encode($payload, $key, 'HS256');
+        $jwt = JWT::encode($payload, env('JWT_SECRET'), 'HS256');
 
         return $jwt;
     }
